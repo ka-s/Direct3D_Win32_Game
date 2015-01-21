@@ -63,10 +63,15 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Texture2D>         m_depthStencil;
 
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_texture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_background;
 
     std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
+    std::unique_ptr<DirectX::CommonStates> m_states;
     DirectX::SimpleMath::Vector2 m_screenPos;
     DirectX::SimpleMath::Vector2 m_origin;
+
+    RECT m_tileRect;
+    RECT m_fullscreenRect;
 
     // Game state
     DX::StepTimer                                   m_timer;

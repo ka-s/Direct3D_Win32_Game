@@ -64,9 +64,19 @@ void Game::Render()
     Clear();
 
     // TODO: Add your rendering code here
-    m_spriteBatch->Begin();
+    float time = float(m_timer.GetTotalSeconds());
 
-    m_spriteBatch->Draw(m_texture.Get(), m_screenPos, nullptr, Colors::White, 0.f, m_origin);
+    m_spriteBatch->Begin(SpriteSortMode_Deferred, nullptr, m_states->LinearWrap());
+
+    m_spriteBatch->Draw(m_background.Get(), m_fullscreenRect);
+
+    m_spriteBatch->Draw(
+        m_texture.Get(), 
+        m_screenPos, 
+        &m_tileRect, 
+        Colors::White, 
+        0.f, 
+        m_origin);
 
     m_spriteBatch->End();
 
@@ -215,19 +225,31 @@ void Game::CreateDevice()
 
     // TODO: Initialize device dependent objects here (independent of window size)
     m_spriteBatch.reset(new SpriteBatch(m_d3dContext.Get()));
+    m_states.reset(new CommonStates(m_d3dDevice.Get()));
 
     ComPtr<ID3D11Resource> resource;
     DX::ThrowIfFailed(
         CreateWICTextureFromFile(m_d3dDevice.Get(), L"cat.png", resource.GetAddressOf(),
         m_texture.ReleaseAndGetAddressOf()));
+    DX::ThrowIfFailed(
+        CreateWICTextureFromFile(m_d3dDevice.Get(), L"sunset.jpg", nullptr,
+        m_background.ReleaseAndGetAddressOf()));
 
     ComPtr<ID3D11Texture2D> cat;
     DX::ThrowIfFailed(resource.As(&cat));
     CD3D11_TEXTURE2D_DESC catDesc;
     cat->GetDesc(&catDesc);
 
-    m_origin.x = float(catDesc.Width / 2);
-    m_origin.y = float(catDesc.Height / 2);
+    m_origin.x = float(catDesc.Width * 2);
+    m_origin.y = float(catDesc.Height * 2);
+
+    //m_origin.x = float(catDesc.Width / 2);
+    //m_origin.y = float(catDesc.Height / 2);
+
+    m_tileRect.left = catDesc.Width * 2;
+    m_tileRect.right = catDesc.Width * 6;
+    m_tileRect.top = catDesc.Height * 2;
+    m_tileRect.bottom = catDesc.Height * 6;
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
@@ -356,6 +378,11 @@ void Game::CreateResources()
     // TODO: Initialize windows-size dependent objects here
     m_screenPos.x = backBufferWidth / 2.f;
     m_screenPos.y = backBufferHeight / 2.f;
+
+    m_fullscreenRect.left = 0;
+    m_fullscreenRect.top = 0;
+    m_fullscreenRect.right = backBufferWidth;
+    m_fullscreenRect.bottom = backBufferHeight;
 }
 
 void Game::OnDeviceLost()
@@ -378,4 +405,6 @@ void Game::OnDeviceLost()
 
     m_texture.Reset();
     m_spriteBatch.reset();
+    m_states.reset();
+    m_background.Reset();
 }
